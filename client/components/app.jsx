@@ -10,12 +10,14 @@ const App = () => {
   const [end, useEndDate] = useState(null);
   const [cryptoData, useCryptoData] = useState([]);
   const [dates, useDates] = useState([]);
+  const [dateLength, useDateLength] = useState(0);
   const [values, useValues] = useState([]);
   const [chartLine, useChartLine] = useState(true);
 
   useEffect(() => {
     axios.get('https://api.coindesk.com/v1/bpi/historical/close.json?start=2013-09-01&end=2013-09-05')
       .then(({ data }) => {
+        useDateLength(Object.keys(data.bpi).length);
         useDates(Object.keys(data.bpi))
         useValues(Object.values(data.bpi))
       })
@@ -47,9 +49,13 @@ const App = () => {
   }
 
   const renderChart = () => {
+    let currentDates = dates;
+    if (dates.length !== dateLength) {
+      currentDates = dates.slice(0, dateLength);
+    }
     if (chartLine) {
       return <LineChart data={{
-        labels: dates,
+        labels: currentDates,
         datasets: [{
             label: 'Bitcoin Value',
             data: values,
@@ -67,7 +73,7 @@ const App = () => {
       } width="1300" height="250"/>
     } else {
       return <BarChart data={{
-        labels: dates,
+        labels: currentDates,
         datasets: [{
             label: 'Bitcoin Value',
             data: values,
