@@ -14,21 +14,17 @@ const App = () => {
   const [chartLine, useChartLine] = useState(true);
 
   useEffect(() => {
-    axios.get(`https://api.coindesk.com/v1/bpi/historical/close.json`)
+    axios.get('https://api.coindesk.com/v1/bpi/historical/close.json?start=2013-09-01&end=2013-09-05')
       .then(({ data }) => {
         useDates(Object.keys(data.bpi))
         useValues(Object.values(data.bpi))
       })
-  })
+  }, [])
 
   useEffect(() => {
-    console.log(start, end)
     if (start && end) {
       axios.get(`https://api.coindesk.com/v1/bpi/historical/close.json?start=${start}&end=${end}`)
       .then(({ data }) => {
-        console.log(data)
-        // console.log(Object.keys(data.bpi))
-        // console.log(Object.values(data.bpi))
         useDates(Object.keys(data.bpi))
         useValues(Object.values(data.bpi))
       })
@@ -43,18 +39,21 @@ const App = () => {
 
   const handleChart = (e) => {
     e.preventDefault();
-    console.log(e.target.value)
+    if (e.target.typeOfChart.value === 'Bar') {
+      useChartLine(false);
+    } else {
+      useChartLine(true);
+    }
   }
 
   const renderChart = () => {
-    console.log(chartLine)
     if (chartLine) {
       return <LineChart data={{
         labels: dates,
         datasets: [{
             label: 'Bitcoin Value',
             data: values,
-            borderWidth: 1
+            borderWidth: 1,
         }]
       }} options={{
         scales: {
@@ -65,7 +64,7 @@ const App = () => {
             }]
           }
         }
-      } width="600" height="250"/>
+      } width="1300" height="250"/>
     } else {
       return <BarChart data={{
         labels: dates,
@@ -76,14 +75,15 @@ const App = () => {
         }]
       }} options={{
         scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
-          }
-        }
-      } width="600" height="250"/>
+          xAxes: [{
+            type: 'time',
+            stacked: true
+          }],
+          yAxes: [{
+            stacked: true
+          }]
+      }
+    }} width="1300" height="250"/>
     }
   }
 
@@ -91,22 +91,14 @@ const App = () => {
     <>
       <Form handleSubmit={handleSubmit}/>
       <div className="chart">
-        {renderChart}
+        {renderChart()}
       </div>
       <form onSubmit={handleChart}>
         <label>Chart type:
-          <select>
+          <select name="typeOfChart">
             <option value="Line">Line</option>
             <option value="Bar">Bar</option>
           </select>
-          {/* <select>
-            <option value="Second">Second</option>
-            <option value="Minute">Minute</option>
-            <option value="Hour">Hour</option>
-            <option value="Day">Day</option>
-            <option value="Month">Month</option>
-            <option value="Year">Year</option>
-          </select> */}
           <input type="submit" value="update"/>
         </label>
       </form>
